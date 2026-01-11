@@ -84,10 +84,6 @@ app.post('/api/v1/sensores', async (req, res) => {
 	}
 })
 
-app.use((req, res) => {
-res.status(404).send('Rota não encontrada');
-});
-
 // Atualização e DELETE
 
 // app.put("/api/v1/sensores/:id", async (req, res) => {
@@ -136,6 +132,41 @@ app.put('/api/v1/sensores/:id', async (req, res) => {
 		res.status(500).json({ message: "Erro interno do servidor" });
 	}
 });
+
+app.delete('/api/v1/sensores/:id', async (req, res) => {
+	try {
+		const { id } = req.params;
+
+		const sensores = await readSensorFile();
+
+		// procura o índice do sensor
+		const index = sensores.findIndex(sensor => sensor.id == id);
+
+		if (index === -1) {
+			return res.status(404).json({ message: "Sensor não encontrado" });
+		}
+
+		// remove o sensor do array
+		const sensorRemovido = sensores.splice(index, 1);
+
+		// salva o arquivo atualizado
+		await writeSensorFile(sensores);
+
+		res.status(200).json({
+			status: "success",
+			message: "Sensor removido com sucesso",
+			data: sensorRemovido[0]
+		});
+	} catch (error) {
+		res.status(500).json({ message: "Erro interno do servidor" });
+	}
+});
+
+
+app.use((req, res) => {
+res.status(404).send('Rota não encontrada');
+});
+
 
 
 // sensores
